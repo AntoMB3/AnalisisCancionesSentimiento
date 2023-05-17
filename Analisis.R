@@ -2,13 +2,36 @@ library(syuzhet)
 library(RColorBrewer)
 library(wordcloud)
 library(tm)
+library(reticulate)
+library(hash)
+library(jsonlite)
+setwd("D:/Proyectos/AnalisisCancionesSentimiento")
+use_virtualenv("venv/")
+source_python("Scrapping.py")
 
-letra <- scan(file = "D:/Proyectos/AnalisisCancionesSentimiento/Amorfoda.txt",fileEncoding = "UTF-8" 
+letra <- scan(file = "D:/Proyectos/AnalisisCancionesSentimiento/Tu mirada.txt",fileEncoding = "UTF-8" 
               ,what = character(),sep = "\n",allowEscapes = TRUE)
 
+cargar_diccionario <- function(){
+  out <- tryCatch(
+    {
+      palabras <- fromJSON("D:/Proyectos/AnalisisCancionesSentimiento/diccionario.json")
+      print("Diccionario cargado")
+      return (palabras)
+    }, error = function(e){
+      palabras <- list()
+      return (palabras)
+      print("Diccionario creado")
+    }
+  )
+  
+  return (out)
+}
+
+diccionario <- cargar_diccionario()
+
 oraciones <- get_sentences(letra)
-oraciones
-oraciones[11]
+
 
 
 #Obtener sentimientos
@@ -26,17 +49,48 @@ oraciones_felicidad
 oraciones_felicidad<- sort(table(unlist(oraciones_felicidad)), decreasing = TRUE)
 head(oraciones_felicidad)
 
-conectores_adversos <- c(" pero "," niego "," a pesar de "," al contrario "," aunque "," excepto "," salvo "," contra "," sin "," falso ")
-conectores_aumentan <- c(" Muy "," Demasiado "," Sumamente "," bastante "," mucho "," más "," Tan ")
+#Posibles c("aunque",)
+conectores_adversos <- c("pero","niego","No","a pesar de","al contrario","excepto","salvo","contra","sin","falso")
+conectores_aumentan <- c("Muy","Demasiado","Sumamente","bastante","mucho","más","Tan")
 
-mejorar_resultados <- function(dataframe_sentimientos){
+mejorar_resultados <- function(sentimientos_pre){
   
   for(i in 1:nrow(sentimientos_pre)){
-    have_feelings <- sum(sentimientos_pre[i-1,])
+    
+    palabras_en_frase <- get_tokens(oraciones[i])
+    
+    for(w in 1:length(palabras_en_frase)){
+      sentimiento <- get_nrc_sentiment(palabras_en_frase[w], language = "spanish")
+      palabra_actual <- palabras_en_frase[w]
+      if (sum(sentimiento) == 0 && nchar(palabras_en_frase[w]) > 3){
+        
+        if(palabra_actual %in% names(diccionario)){
+          palabra_actual <- diccionario[[palabra_actual]]
+        }
+        else{
+          
+        palabra_nueva <- BuscarPalabra(palabras_en_frase[w])
+        if(!is.null(palabra_nueva)){
+        diccionario[[palabra_actual]] <- palabra_nueva
+        diccionario[[palabra_nueva]] <- palabra_nueva
+        palabra_actual <- palabra_nueva
+        }
+        else{
+          diccionario[[palabra_actual]] <- palabra_actual
+        }
+        
+        
+        }
+        
+        nuevo_sentimiento <- get_nrc_sentiment(palabra_actual,language = "spanish")
+        sentimientos_pre[i,] = sentimientos_pre[i,1:10] + nuevo_sentimiento
+      }
+    }
+    
     
     for(h in 1:length(conectores_adversos)){
-    
-    if(grepl(conectores_adversos[h],oraciones[i],ignore.case = TRUE)){
+    con <- conectores_adversos[h]
+    if(grepl(paste0("^(",con,"|\\b",con,"\\b)"),oraciones[i],ignore.case = TRUE)){
       print(oraciones[i])
       bandera = FALSE
       
@@ -100,22 +154,17 @@ mejorar_resultados <- function(dataframe_sentimientos){
     }
     
     for(h in 1:length(conectores_aumentan)){
-      if(grepl(h,oraciones[i])){
+      con <- conectores_aumentan[h]
+      if(grepl(paste0("^(",con,"|\\b",con,"\\b)"),oraciones[i],ignore.case = TRUE)){
         for(k in 1:ncol(sentimientos_pre)){
           sentimientos_pre[i,k] <- sentimientos_pre[i,k]*2
         }
       }
     }
-    
-    for (j in 1:ncol(sentimientos_pre)){
-      
-      if(i != 1 & i!= max(nrow(sentimientos_pre)) ){
-        #print(paste(round((sentimientos_pre[i,j]+sentimientos_pre[i+1,j]+sentimientos_pre[i-1,j])/3,0),columnas[j]))
-      #sentimientos_pre[i,j] <- (sentimientos_pre[i,j]+sentimientos_pre[i+1,j]+sentimientos_pre[i-1,j])/3
-      }
-    }
 
   }
+  dictJson <- toJSON(diccionario)
+  write(dictJson, file = "D:/Proyectos/AnalisisCancionesSentimiento/diccionario.json")
   return (sentimientos_pre)
 }
 
@@ -158,8 +207,29 @@ barplot(
   xlab="emociones", ylab = NULL)
 
 
-indices <- which(apply(sentimientos_sin_duplicados[sentimientos_sin_duplicados$joy> 0,],1,function(x) x["joy"]>0))
+indices <- which(apply(sentimientos_sin_duplicados[sentimientos_sin_duplicados$peace> 0,],1,function(x) x["peace"]>0))
 indices <-names(indices)
 indices <- as.integer(indices)
 oraciones[indices]
 indices
+
+
+
+################################################
+install.packages("reticulate")
+library(reticulate)
+setwd("D:/Proyectos/AnalisisCancionesSentimiento")
+use_virtualenv("venv/")
+source_python("Scrapping.py")
+
+print(BuscarPalabra("Perdí"))
+
+palabra <- "gfdgfdgd"
+
+sentimiento <- get_nrc_sentiment(palabra, language = "spanish")
+if (sum(sentimiento) == 0 && nchar(palabra) > 3){
+  nuevo_sentimiento <- get_nrc_sentiment(BuscarPalabra(palabra),language = "spanish")
+  print(nuevo_sentimiento)
+}
+
+print(BuscarPalabra("gfsdgfdgd")) #Regresa un NULL
