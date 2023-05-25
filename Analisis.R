@@ -15,7 +15,7 @@ letra <- scan(file = "D:/Proyectos/AnalisisCancionesSentimiento/Tu mirada.txt",f
 cargar_diccionario <- function(){
   out <- tryCatch(
     {
-      palabras <- fromJSON("D:/Proyectos/AnalisisCancionesSentimiento/diccionario.json")
+      palabras <- fromJSON("diccionario.json")
       print("Diccionario cargado")
       return (palabras)
     }, error = function(e){
@@ -210,6 +210,8 @@ barplot(
 indices <- which(apply(sentimientos_sin_duplicados[sentimientos_sin_duplicados$peace> 0,],1,function(x) x["peace"]>0))
 indices <-names(indices)
 indices <- as.integer(indices)
+
+
 oraciones[indices]
 indices
 

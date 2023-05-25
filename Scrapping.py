@@ -5,7 +5,7 @@ import re
 def InicializarServer() -> webdriver:
 
     ## Leer el driver de Chrome para poder utilizarlo
-    path = "D:\Proyectos\chromedriver_win32\chromedriver.exe"
+    path = "chromedriver_win32\chromedriver.exe"
     service = Service(executable_path=path)
 
     #Activar el driver
