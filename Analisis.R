@@ -9,8 +9,8 @@ setwd("D:/Proyectos/AnalisisCancionesSentimiento")
 use_virtualenv("venv/")
 source_python("Scrapping.py")
 
-letra <- scan(file = "D:/Proyectos/AnalisisCancionesSentimiento/Tu mirada.txt",fileEncoding = "UTF-8" 
-              ,what = character(),sep = "\n",allowEscapes = TRUE)
+#letra <- scan(file = "D:/Proyectos/AnalisisCancionesSentimiento/Tu mirada.txt",fileEncoding = "UTF-8" 
+#              ,what = character(),sep = "\n",allowEscapes = TRUE)
 
 cargar_diccionario <- function(){
   out <- tryCatch(
@@ -164,7 +164,7 @@ mejorar_resultados <- function(sentimientos_pre){
 
   }
   dictJson <- toJSON(diccionario)
-  write(dictJson, file = "D:/Proyectos/AnalisisCancionesSentimiento/diccionario.json")
+  #write(dictJson, file = "D:/Proyectos/AnalisisCancionesSentimiento/diccionario.json")
   return (sentimientos_pre)
 }
 

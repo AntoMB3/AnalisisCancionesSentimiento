@@ -5,7 +5,7 @@ library(tm)
 library(reticulate)
 library(hash)
 library(jsonlite)
-setwd("D:/Proyectos/AnalisisCancionesSentimiento")
+#setwd("D:/Proyectos/AnalisisCancionesSentimiento")
 use_virtualenv("venv/")
 source_python("Scrapping.py")
 
@@ -31,6 +31,8 @@ cargar_diccionario <- function(){
 diccionario <- cargar_diccionario()
 conectores_adversos <- c("pero","niego","No","a pesar de","al contrario","excepto","salvo","contra","sin","falso")
 conectores_aumentan <- c("Muy","Demasiado","Sumamente","bastante","mucho","más","Tan")
+advers_connectors <- c("not", "dont", "never", "no", "without", "unless", "except", "but", "however", "yet", "although", "despite", "in spite of", "even though", "while", "whereas")
+increasing_connectors <- c("a lot", "much", "very", "extremely", "highly", "greatly", "significantly", "tremendously", "exceedingly", "intensely", "immensely", "enormously", "vastly", "remarkably", "exceptionally", "considerably")
 
 
 ui <- fluidPage(
@@ -223,9 +225,97 @@ server <- function(input, output, session) {
       }
       return(sentimientos_mejorado)
     }
+    improve_results <- function(sentimientos_pre){
+      
+      for(i in 1:nrow(sentimientos_pre)){
+        
+        for(h in 1:length(advers_connectors)){
+          con <- advers_connectors[h]
+          if(grepl(paste0("^(",con,"|\\b",con,"\\b)"),oraciones[i],ignore.case = TRUE)){
+            print(con)
+            bandera = FALSE
+            
+            valor <- sentimientos_pre[i,1]
+            if(valor == 0){bandera <- TRUE}
+            sentimientos_pre[i,1] <- sentimientos_pre[i,1] - valor
+            sentimientos_pre[i,11] <- sentimientos_pre[i,11] + valor
+            if(bandera){
+              valor <- sentimientos_pre[i,11]
+              sentimientos_pre[i,11] <- sentimientos_pre[i,11] - valor
+              sentimientos_pre[i,1] <- sentimientos_pre[i,1] + valor
+              bandera <- FALSE
+            }
+            
+            valor <- sentimientos_pre[i,3]
+            if(valor == 0){bandera <- TRUE}
+            sentimientos_pre[i,3] <- sentimientos_pre[i,3] - valor
+            sentimientos_pre[i,12] <- sentimientos_pre[i,12] + valor
+            if(bandera){
+              valor <- sentimientos_pre[i,12]
+              sentimientos_pre[i,12] <- sentimientos_pre[i,12] - valor
+              sentimientos_pre[i,3] <- sentimientos_pre[i,3] + valor
+              bandera <- FALSE
+            }
+            
+            valor <- sentimientos_pre[i,4]
+            if(valor == 0){bandera <- TRUE}
+            sentimientos_pre[i,4] <- sentimientos_pre[i,4] - valor
+            sentimientos_pre[i,8] <- sentimientos_pre[i,8] + valor
+            if(bandera){
+              valor <- sentimientos_pre[i,8]
+              sentimientos_pre[i,8] <- sentimientos_pre[i,8] - valor
+              sentimientos_pre[i,4] <- sentimientos_pre[i,4] + valor
+              bandera <- FALSE
+            }
+            
+            valor <- sentimientos_pre[i,5]
+            if(valor == 0){bandera <- TRUE}
+            sentimientos_pre[i,5] <- sentimientos_pre[i,5] - valor
+            sentimientos_pre[i,6] <- sentimientos_pre[i,6] + valor
+            if(bandera){
+              valor <- sentimientos_pre[i,6]
+              sentimientos_pre[i,6] <- sentimientos_pre[i,6] - valor
+              sentimientos_pre[i,5] <- sentimientos_pre[i,5] + valor
+              bandera <- FALSE
+            }
+            
+            valor <- sentimientos_pre[i,9]
+            if(valor == 0){bandera <- TRUE}
+            sentimientos_pre[i,9] <- sentimientos_pre[i,9] - valor
+            sentimientos_pre[i,10] <- sentimientos_pre[i,10] + valor
+            
+            if(bandera){
+              valor <- sentimientos_pre[i,10]
+              sentimientos_pre[i,10] <- sentimientos_pre[i,10] - valor
+              sentimientos_pre[i,9] <- sentimientos_pre[i,9] + valor
+              bandera <- FALSE
+            }
+            
+          }
+        }
+        
+        for(h in 1:length(increasing_connectors)){
+          con <- increasing_connectors[h]
+          if(grepl(paste0("^(",con,"|\\b",con,"\\b)"),oraciones[i],ignore.case = TRUE)){
+            for(k in 1:ncol(sentimientos_pre)){
+              sentimientos_pre[i,k] <- sentimientos_pre[i,k]*2
+            }
+          }
+        }
+      }
+      
+      return (sentimientos_pre)
+    }
+    
+    if(input$idioma == "spanish"){
     
     sentimientos_mejorado <- mejorar_resultados(sentimientos_pre)
     sentimientos_sin_duplicados <- mejorar_duplicados(sentimientos_mejorado)
+    }
+    else{
+      print("Hola")
+      sentimientos_sin_duplicados <- improve_results(sentimientos_pre)
+    }
     
     nombre_cancion <- input$cancion$name
     nombre_cancion <- gsub("\\.txt$","",nombre_cancion)

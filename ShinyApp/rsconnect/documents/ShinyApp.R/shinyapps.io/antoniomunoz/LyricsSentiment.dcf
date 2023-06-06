@@ -1,0 +1,13 @@
+name: LyricsSentiment
+title: LyricsSentiment
+username:
+account: antoniomunoz
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 9232273
+bundleId: 7294400
+url: https://antoniomunoz.shinyapps.io/LyricsSentiment/
+when: 1685662661.87539
+lastSyncTime: 1685662661.8754
+asMultiple: FALSE
+asStatic: FALSE
