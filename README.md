@@ -1,7 +1,7 @@
 # AnalisisCancionesSentimiento
 
 ## Resumen
-El proyecto está enfocado en obtener un análisis de sentimientos de la letra de una cancion. Las emociones que detecta son enojo, anticipación, disgusto, miedo, alegría, tristeza, sorpresa, confianza, paz y placer. También clasifica las frases en negativas y positivas. La aplifación funciona con letras en inglés y en español y solamente se ocupa subir la letra en un archivo de txt.
+El proyecto está enfocado en obtener un análisis de sentimientos de la letra de una cancion. Las emociones que detecta son enojo, anticipación, disgusto, miedo, alegría, tristeza, sorpresa, confianza, paz y placer. También clasifica las frases en negativas y positivas. La aplicación funciona con letras en inglés y en español y solamente se ocupa subir la letra en un archivo de txt.
 ![Gráfico de sentimientos para la canción Stay With Me de Sam Smith](Resultados/Grafico_staywithme.jpg)
 
 Al final de la ejecución, podemos elegir un sentimiento y obtener que frases fueron clasificadas con ese sentimiento. Una misma frase puede estar clasificada en varios sentimientos.
